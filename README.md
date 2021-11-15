@@ -1,4 +1,4 @@
-This repo is used for Wild Code School Express quests
+This repo is used for Wild Code School Express quest
 
 # Setup
 
