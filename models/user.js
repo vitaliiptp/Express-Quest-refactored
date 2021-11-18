@@ -4,6 +4,24 @@ const Joi = require('joi');
 const db = connection.promise();
 
 
+const argon2 = require('argon2');
+
+const hashingOptions = {
+    type: argon2.argon2id,
+    memoryCost: 2 ** 16,
+    timeCost: 5,
+    parallelism: 1
+};
+
+const hashPassword = (plainPassword) => {
+    return argon2.hash(plainPassword, hashingOptions);
+};
+
+const verifyPassword = (plainPassword, hashedPassword) => {
+    return argon2.verify(hashedPassword, plainPassword, hashingOptions);
+};
+
+
 const validate = (data, forCreation = true) => {
     const presence = forCreation ? 'required' : 'optional';
     return Joi.object({
@@ -12,6 +30,7 @@ const validate = (data, forCreation = true) => {
         lastname: Joi.string().max(255).presence(presence),
         city: Joi.string().allow(null, '').max(255),
         language: Joi.string().allow(null, '').max(255),
+        password: Joi.string().min(9).max(255).presence(presence)
     }).validate(data, { abortEarly: false }).error;
 };
 
@@ -43,10 +62,15 @@ const findByEmailWithDiffId = (email, id) => {
         .then(([results]) => results[0]);
 };
 
-const createUser = (data) => {
-    return db.query('INSERT INTO users SET ?', data).then(([result]) => {
-        const id = result.insertId;
-        return { ...data, id };
+const createUser = ({ firstname, lastname, email, city, language, password }) => {
+    return hashPassword(password).then((hashedPassword) => {
+        return db.
+            query('INSERT INTO users SET ?',
+            { firstname, lastname, email, city, language, hashedPassword })
+            .then(([result]) => {
+                const id = result.insertId;
+                return { firstname, lastname, email, city, language, password, id };
+        });
     });
 };
 
@@ -65,6 +89,8 @@ const deleteUser = (id) => {
 
 
 module.exports = {
+    hashPassword,
+    verifyPassword,
     validate,
     findMany,
     findOne,
