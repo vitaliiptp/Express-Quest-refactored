@@ -1,6 +1,7 @@
 const connection = require('../db-config');
 const Joi = require('joi');
 
+
 const db = connection.promise();
 
 
@@ -11,7 +12,7 @@ const validate = (data, forCreation = true) => {
         director: Joi.string().max(255).presence(presence),
         year: Joi.number().integer().min(1888).presence(presence),
         color: Joi.boolean().presence(presence),
-        duration: Joi.number().integer().min(1).presence(presence),
+        duration: Joi.number().integer().min(1).presence(presence)
     }).validate(data, { abortEarly: false }).error;
 };
 
@@ -37,14 +38,14 @@ const findOne = (id) => {
         .then(([result]) => result[0]);
 };
 
-const createMovie = ({ title, director, year, color, duration }) => {
+const createMovie = ({ title, director, year, color, duration, user_id }) => {
     return db
-        .query('INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)',
-            [title, director, year, color, duration])
+        .query('INSERT INTO movies(title, director, year, color, duration, user_id) VALUES (?, ?, ?, ?, ?, ?)',
+            [title, director, year, color, duration, user_id])
         .then(([result]) => {
             console.log(result);
             const id = result.insertId;
-            return { id, title, director, year, color, duration };
+            return { id, title, director, year, color, duration, user_id };
         });
 };
 

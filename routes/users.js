@@ -2,6 +2,7 @@
 const usersRouter = require('express').Router();
 // Import the movie model that we'll need in controller functions
 const User = require('../models/user');
+const { calculateToken } = require('../helpers/users');
 
 
 
@@ -35,13 +36,14 @@ usersRouter.get('/:id', (req, res) => {
 
 usersRouter.post('/', (req, res) => {
     const { email } = req.body;
+    const token = calculateToken(email)
     let validationErrors = null;
     User.findByEmail(email)
         .then((existingUserWithEmail) => {
             if (existingUserWithEmail) return Promise.reject('DUPLICATE_EMAIL');
             validationErrors = User.validate(req.body);
             if (validationErrors) return Promise.reject('INVALID_DATA');
-            return User.createUser(req.body);
+            return User.createUser({...req.body, token: token});
         })
         .then((createdUser) => {
             res.status(201).json(createdUser);

@@ -56,17 +56,24 @@ const findByEmail = (email) => {
         .then(([results]) => results[0]);
 };
 
+const findByToken = (token) => {
+    return db
+        .query('SELECT * FROM users WHERE token = ?', [token])
+        .then(([results]) => results[0]);
+};
+
+
 const findByEmailWithDiffId = (email, id) => {
     return db
         .query('SELECT * FROM users WHERE email = ? AND id <> ?', [email, id])
         .then(([results]) => results[0]);
 };
 
-const createUser = ({ firstname, lastname, email, city, language, password }) => {
+const createUser = ({ firstname, lastname, email, city, language, password, token }) => {
     return hashPassword(password).then((hashedPassword) => {
         return db.
             query('INSERT INTO users SET ?',
-            { firstname, lastname, email, city, language, hashedPassword })
+            { firstname, lastname, email, city, language, hashedPassword, token })
             .then(([result]) => {
                 const id = result.insertId;
                 return { firstname, lastname, email, city, language, password, id };
@@ -84,7 +91,11 @@ const deleteUser = (id) => {
         .then(([result]) => result.affectedRows !== 0);
 }
 
-
+const userMovies = (user_id) => {
+    return db
+        .query('SELECT * FROM movies WHERE user_id = ?', [user_id])
+        .then(([result]) => result);
+}
 
 
 
@@ -96,7 +107,9 @@ module.exports = {
     findOne,
     createUser,
     findByEmail,
+    findByToken,
     findByEmailWithDiffId,
     updateUser,
-    deleteUser
+    deleteUser,
+    userMovies
 }
