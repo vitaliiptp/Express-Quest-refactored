@@ -1,6 +1,6 @@
 const moviesRouter = require('./movies');
 const usersRouter = require('./users')
-const authRouter = require('./users')
+const authRouter = require('./auth')
 
 const setupRoutes = (app) => {
     // Movie routes
