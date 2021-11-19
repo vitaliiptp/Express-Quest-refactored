@@ -1,3 +1,5 @@
+const jwt = require('jsonwebtoken');
+
 // Create the router object that will manage all operations on movies
 const moviesRouter = require('express').Router();
 // Import the movie model that we'll need in controller functions
@@ -9,13 +11,13 @@ const User = require('../models/user');
 moviesRouter.get('/', (req, res) => {
     // const { user_token } = req.cookies;
     // User.findByToken(user_token)
-    User.findByToken(req.cookies['user_token'])
-        .then((user) => {
-            User.userMovies(user.id).then((movies) => {res.json(movies);
-            })
-                .catch((err) => res.status(500).send('Error retrieving movies from database'))
-                .catch((err) => res.status(401).send('Unauthorized access'))
-        });
+    const userToken = req.cookies['user_token'];
+    const decodedToken = jwt.decode(userToken);
+    const userId = decodedToken.userId;
+        User.userMovies(userId).then((movies) => {res.json(movies);
+        })
+            .catch((err) => res.status(500).send('Error retrieving movies from database'))
+            .catch((err) => res.status(401).send('Unauthorized access'))
 });
 
 moviesRouter.get('/', async (req, res) => {
@@ -45,22 +47,23 @@ moviesRouter.get('/:id', (req, res) => {
 
 
 moviesRouter.post('/', (req, res) => {
-    User.findByToken(req.cookies['user_token'])
-        .then((user) => {
-            const error = Movie.validate(req.body);
-            if (error) {
-                res.status(422).json({ validationErrors: error.details });
-            } else {
-                Movie.createMovie({...req.body, user_id: user.id})
-                    .then((createdMovie) => {
-                        res.status(200).json(createdMovie);
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                        res.status(500).send('Error saving the movie');
-                    });
-            }
-        })
+    const userToken = req.cookies['user_token']
+    const decodedToken = jwt.decode(userToken);
+    const userId = decodedToken.userId
+
+        const error = Movie.validate(req.body);
+        if (error) {
+            res.status(422).json({ validationErrors: error.details });
+        } else {
+            Movie.createMovie({...req.body, user_id: userId})
+                .then((createdMovie) => {
+                    res.status(200).json(createdMovie);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    res.status(500).send('Error saving the movie');
+                });
+        }
 });
 
 

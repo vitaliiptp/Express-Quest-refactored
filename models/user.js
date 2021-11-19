@@ -56,12 +56,6 @@ const findByEmail = (email) => {
         .then(([results]) => results[0]);
 };
 
-const findByToken = (token) => {
-    return db
-        .query('SELECT * FROM users WHERE token = ?', [token])
-        .then(([results]) => results[0]);
-};
-
 
 const findByEmailWithDiffId = (email, id) => {
     return db
@@ -69,11 +63,11 @@ const findByEmailWithDiffId = (email, id) => {
         .then(([results]) => results[0]);
 };
 
-const createUser = ({ firstname, lastname, email, city, language, password, token }) => {
+const createUser = ({ firstname, lastname, email, city, language, password }) => {
     return hashPassword(password).then((hashedPassword) => {
         return db.
             query('INSERT INTO users SET ?',
-            { firstname, lastname, email, city, language, hashedPassword, token })
+            { firstname, lastname, email, city, language, hashedPassword })
             .then(([result]) => {
                 const id = result.insertId;
                 return { firstname, lastname, email, city, language, password, id };
@@ -107,7 +101,6 @@ module.exports = {
     findOne,
     createUser,
     findByEmail,
-    findByToken,
     findByEmailWithDiffId,
     updateUser,
     deleteUser,

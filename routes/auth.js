@@ -7,13 +7,12 @@ const { calculateToken } = require('../helpers/users');
 authRouter.post('/checkCredentials', (req, res) => {
     const { email, password } = req.body;
     User.findByEmail(email).then((user) => {
-        if(!user) res.status(401).send('Invalid credentials');
+        if (!user) res.status(401).send('Invalid credentials');
         else {
             User.verifyPassword(password, user.hashedPassword).then(
                 (passwordIsCorrect) => {
                     if (passwordIsCorrect) {
-                        const token = calculateToken(email);
-                        User.updateUser(user.id, { token: token })
+                        const token = calculateToken(user.email, user.id);
                         res.cookie('user_token', token)
                         res.send()
                     }
